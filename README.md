@@ -137,6 +137,8 @@ En cas d'échec vérifier:
 
 ### Configuration préalable
 
+Ajouter les range mapping pour votre utilisateur:
+
 ```bash
 sudo /bin/sh -c "echo $(id -u):3000000:65536 >> /etc/subuid"
 sudo /bin/sh -c "echo $(id -u):3000000:65536 >> /etc/subgid"
@@ -151,12 +153,18 @@ from: alpine
 
 %post
     apk update
-    apk add iptables
+    chown bin:bin /etc/profile
 EOF
 ```
 
 ```bash
 singularity build --fakeroot /tmp/fakeroot.sif /tmp/fakeroot.def
+```
+
+Observer le propriétaire de `/etc/profile`:
+
+```bash
+singularity exec /tmp/fakeroot.sif ls -la /etc/profile
 ```
 
 ### Réseau
@@ -166,13 +174,6 @@ Tester le réseau avec/sans l'option `--net`:
 ```bash
 singularity exec --fakeroot --net /tmp/fakeroot.sif ping -c 1 8.8.8.8
 singularity exec --fakeroot /tmp/fakeroot.sif ping -c 1 8.8.8.8
-```
-
-Pareil avec `iptables`:
-
-```bash
-singularity exec --fakeroot --net /tmp/fakeroot.sif iptables -nL
-singularity exec --fakeroot /tmp/fakeroot.sif iptables -nL
 ```
 
 Exécuter un serveur nginx:
@@ -187,4 +188,30 @@ Et dans un autre terminal:
 wget -qO - localhost:8080
 ```
 
-## OCI / Sykube
+## Sykube (Singularity CRI et Singularity OCI runtime)
+
+Pour l'installer:
+
+```bash
+sudo singularity run library://sykube
+```
+
+Installer et démarrer un mini-cluster Kubernetes:
+
+```bash
+sykube init
+```
+
+Cette étape prends plusieurs minutes pour télécharger et lancer les services Kubernetes
+
+Installer l'alias dans sa session:
+
+```bash
+sykube kubectl
+```
+
+Pour obtenir l'URL de la dashboard K8S:
+
+```bash
+sykube dashboard
+```
